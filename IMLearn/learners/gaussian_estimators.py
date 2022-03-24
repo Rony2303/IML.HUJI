@@ -1,4 +1,5 @@
 from __future__ import annotations
+import re
 import numpy as np
 from numpy.linalg import inv, det, slogdet
 
@@ -32,6 +33,7 @@ class UnivariateGaussian:
         """
         self.biased_ = biased_var
         self.fitted_, self.mu_, self.var_ = False, None, None
+        
 
     def fit(self, X: np.ndarray) -> UnivariateGaussian:
         """
@@ -51,10 +53,23 @@ class UnivariateGaussian:
         Sets `self.mu_`, `self.var_` attributes according to calculated estimation (where
         estimator is either biased or unbiased). Then sets `self.fitted_` attribute to `True`
         """
-        raise NotImplementedError()
-
+        m = X.size
+        self.mu_= np.mean(X)
+        if (self.biased_):
+            self.var_ = (1/m)*(np.sum((X- self.mu_)**2))
+        else:
+            self.var_ = (1/(m-1))*(np.sum((X- self.mu_)**2))
         self.fitted_ = True
         return self
+
+    def density(self, x:float) -> float:
+        """
+        calculate the density of a sample X
+        returns the density
+        """
+        dens_of_x = (1/(np.sqrt(2*np.pi*self.var_)))*np.exp((x-self.mu_)**2/(-2*self.var_))
+        return dens_of_x
+
 
     def pdf(self, X: np.ndarray) -> np.ndarray:
         """
@@ -76,7 +91,11 @@ class UnivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        raise NotImplementedError()
+        pdf_arr= np.ndarray(X.size)
+        for i in range (X.size):
+            pdf_arr[i]= self.density(X[i])
+        return pdf_arr
+
 
     @staticmethod
     def log_likelihood(mu: float, sigma: float, X: np.ndarray) -> float:
@@ -97,7 +116,9 @@ class UnivariateGaussian:
         log_likelihood: float
             log-likelihood calculated
         """
-        raise NotImplementedError()
+        coefficient = 0 - (X.size / 2) * np.log(2 * np.pi) - (X.size / 2) * np.log(sigma)
+        log_likelihood = coefficient - (1/(2 * sigma)) * np.sum((X - mu)**2)
+        return log_likelihood        
 
 
 class MultivariateGaussian:
@@ -143,10 +164,21 @@ class MultivariateGaussian:
         Sets `self.mu_`, `self.cov_` attributes according to calculated estimation.
         Then sets `self.fitted_` attribute to `True`
         """
-        raise NotImplementedError()
-
+        self.mu_= np.mean(X,axis=0)
+        self.cov_= np.cov(X.T)
         self.fitted_ = True
         return self
+
+    def density(self, X: np.ndarray) -> float:
+        """
+        calculate the pdf of vector X
+        returns the pdf
+        """
+        d = X.size
+        det = np.linalg.det(self.cov_)
+        cov_inv = np.linalg.inv(self.cov_)
+        ret_dens = (1/(np.sqrt((2*np.pi)**d)* det))* np.exp(-0.5*(X-self.mu_).T*cov_inv*(X-self.mu_))
+        return ret_dens
 
     def pdf(self, X: np.ndarray):
         """
@@ -168,6 +200,10 @@ class MultivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
+        pdf_arr= np.ndarray(X.size)
+        for i in range (X.size):
+            pdf_arr[i]= self.density(X[i])
+        return pdf_arr
         raise NotImplementedError()
 
     @staticmethod
@@ -189,4 +225,14 @@ class MultivariateGaussian:
         log_likelihood: float
             log-likelihood calculated
         """
-        raise NotImplementedError()
+        m = X.size
+        d = X[0].size
+        det = np.linalg.det(cov)
+        cov_inv = np.linalg.inv(cov)
+        log_likelihood = -((d*m)/2)*(np.log(2*np.pi)) - (m/2)*np.log(det) - (1/2)*np.sum((X- mu)@cov_inv@(X-mu).T)
+        return log_likelihood
+
+
+
+
+
