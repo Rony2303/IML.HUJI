@@ -1,3 +1,4 @@
+from cgi import test
 from typing import Tuple
 import numpy as np
 import pandas as pd
@@ -33,7 +34,15 @@ def split_train_test(X: pd.DataFrame, y: pd.Series, train_proportion: float = .2
         Responses of test samples
 
     """
-    raise NotImplementedError()
+    new_mixed_df = X.sample(frac=1,random_state=0)
+    new_mix_y = y.sample(frac=1,random_state=0)
+    df_size = new_mixed_df.shape[0]
+    train_size = np.int(np.ceil(train_proportion * df_size))
+    test_x = new_mixed_df[train_size:]
+    train_x = new_mixed_df[:train_size]
+    test_y = new_mix_y[train_size:]
+    train_y =new_mix_y[:train_size]
+    return (train_x,train_y,test_x,test_y)
 
 
 def confusion_matrix(a: np.ndarray, b: np.ndarray) -> np.ndarray:

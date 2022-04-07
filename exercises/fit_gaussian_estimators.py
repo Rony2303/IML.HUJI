@@ -27,15 +27,14 @@ def test_univariate_gaussian():
           layout=go.Layout(title=r"Absolute Difference Between Estimations and True Values", 
                   xaxis_title=" number of samples", 
                   yaxis_title="number of diffrence",
-                  height=300)).show()
+                  height=500)).show()
 
     # Question 3 - Plotting Empirical PDF of fitted model
     dens_arr_x = UnivariateGaussian_obj.pdf(X)
     go.Figure([go.Scatter(x=X, y=dens_arr_x, mode='markers')],
           layout=go.Layout(title="Estimated Density Model Of Taken Samples", 
                   xaxis_title="Samples Values", 
-                  yaxis_title="PDFs Values",
-                  height=300)).show()
+                  yaxis_title="PDFs Values")).show()
 
 def test_multivariate_gaussian():
 
